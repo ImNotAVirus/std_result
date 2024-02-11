@@ -42,6 +42,31 @@ defmodule ResultStdTest do
     end
   end
 
+  describe "is_ok_and/2" do
+    property "returns true if input is a :ok tuple and fun return true" do
+      check all ok_result <- ok_generator() do
+        {:ok, term} = ok_result
+        fun = fn ^term -> true end
+        assert true == ResultStd.is_ok_and(ok_result, fun)
+      end
+    end
+
+    property "returns false if input is a :ok tuple and fun return false" do
+      check all ok_result <- ok_generator() do
+        {:ok, term} = ok_result
+        fun = fn ^term -> false end
+        assert false == ResultStd.is_ok_and(ok_result, fun)
+      end
+    end
+
+    property "returns false for any :error tuple" do
+      check all err_result <- err_generator() do
+        fun = fn _ -> true end
+        assert false == ResultStd.is_ok_and(err_result, fun)
+      end
+    end
+  end
+
   describe "is_err/1" do
     property "returns false for any :ok tuple" do
       check all ok_result <- ok_generator() do
@@ -55,6 +80,129 @@ defmodule ResultStdTest do
       end
     end
   end
+
+  describe "is_err_and/2" do
+    property "returns true if input is a :error tuple and fun return true" do
+      check all err_result <- err_generator() do
+        {:error, term} = err_result
+        fun = fn ^term -> true end
+        assert true == ResultStd.is_err_and(err_result, fun)
+      end
+    end
+
+    property "returns false if input is a :error tuple and fun return false" do
+      check all err_result <- err_generator() do
+        {:error, term} = err_result
+        fun = fn ^term -> false end
+        assert false == ResultStd.is_err_and(err_result, fun)
+      end
+    end
+
+    property "returns false for any :ok tuple" do
+      check all ok_result <- ok_generator() do
+        fun = fn _ -> true end
+        assert false == ResultStd.is_err_and(ok_result, fun)
+      end
+    end
+  end
+
+  describe "map/2" do
+    property "apply the function to any :ok tuple" do
+      check all int <- integer() do
+        ok_result = {:ok, int}
+        fun = fn x -> x * 2 end
+        assert {:ok, int * 2} == ResultStd.map(ok_result, fun)
+      end
+    end
+
+    property "returns the input for any :error tuple" do
+      check all err_result <- err_generator() do
+        fun = fn _ -> :unused end
+        assert err_result == ResultStd.map(err_result, fun)
+      end
+    end
+  end
+
+  describe "map_or/3" do
+    property "apply the function to any :ok tuple" do
+      check all int <- integer() do
+        ok_result = {:ok, int}
+        fun = fn x -> x * 2 end
+        assert int * 2 == ResultStd.map_or(ok_result, :default, fun)
+      end
+    end
+
+    property "returns the default argument for any :error tuple" do
+      check all err_result <- err_generator() do
+        fun = fn _ -> :unused end
+        assert :default == ResultStd.map_or(err_result, :default, fun)
+      end
+    end
+  end
+
+  describe "map_or_else/3" do
+    property "apply the function to any :ok tuple" do
+      check all int <- integer() do
+        ok_result = {:ok, int}
+        fun = fn x -> x * 2 end
+        default_fun = fn _ -> :unused end
+        assert int * 2 == ResultStd.map_or_else(ok_result, default_fun, fun)
+      end
+    end
+
+    property "calls the default function for any :error tuple" do
+      check all int <- integer() do
+        err_result = {:error, int}
+        fun = fn _ -> :unused end
+        default_fun = fn x -> x * 3 end
+        assert int * 3 == ResultStd.map_or_else(err_result, default_fun, fun)
+      end
+    end
+  end
+
+  describe "map_err/2" do
+    property "apply the function to any :error tuple" do
+      check all int <- integer() do
+        err_result = {:error, int}
+        fun = fn x -> "error: #{x}" end
+        assert {:error, "error: #{int}"} == ResultStd.map_err(err_result, fun)
+      end
+    end
+
+    property "returns the input for any :ok tuple" do
+      check all ok_result <- ok_generator() do
+        fun = fn _ -> :unused end
+        assert ok_result == ResultStd.map_err(ok_result, fun)
+      end
+    end
+  end
+
+  describe "inspect/2" do
+    property "apply the function to any :ok tuple" do
+      check all ok_result <- ok_generator() do
+        {:ok, ok_term} = ok_result
+        ref = make_ref()
+        parent = self()
+        fun = fn term -> send(parent, {ref, term}) end
+
+        assert ok_result == ResultStd.inspect(ok_result, fun)
+        assert_received {^ref, ^ok_term}
+      end
+    end
+
+    property "returns the input for any :error tuple" do
+      check all err_result <- err_generator() do
+        ref = make_ref()
+        parent = self()
+        fun = fn term -> send(parent, {ref, term}) end
+
+        assert err_result == ResultStd.inspect(err_result, fun)
+        refute_received {^ref, ^err_result}
+      end
+    end
+  end
+
+  ####
 
   describe "and_then/2" do
     property "call the callback for any :ok tuple" do
@@ -105,7 +253,7 @@ defmodule ResultStdTest do
     end
   end
 
-  describe "unwrap/2" do
+  describe "unwrap/1" do
     property "unwrap the term for any :ok tuple" do
       check all ok_result <- ok_generator() do
         {:ok, term} = ok_result
@@ -122,7 +270,7 @@ defmodule ResultStdTest do
     end
   end
 
-  describe "partition_result/2" do
+  describe "partition_result/1" do
     property "return a list of :ok tuple as the first elem" do
       check all ok_list <- list_of(ok_generator()) do
         term_list = Enum.map(ok_list, &elem(&1, 1))
