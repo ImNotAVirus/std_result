@@ -190,7 +190,7 @@ defmodule ResultStdTest do
       end
     end
 
-    property "returns the input for any :error tuple" do
+    property "do nothing for any :error tuple" do
       check all err_result <- err_generator() do
         ref = make_ref()
         parent = self()
@@ -198,6 +198,31 @@ defmodule ResultStdTest do
 
         assert err_result == ResultStd.inspect(err_result, fun)
         refute_received {^ref, ^err_result}
+      end
+    end
+  end
+
+  describe "inspect_err/2" do
+    property "apply the function to any :error tuple" do
+      check all err_result <- err_generator() do
+        {:error, err_term} = err_result
+        ref = make_ref()
+        parent = self()
+        fun = fn term -> send(parent, {ref, term}) end
+
+        assert err_result == ResultStd.inspect_err(err_result, fun)
+        assert_received {^ref, ^err_term}
+      end
+    end
+
+    property "do nothing for any :ok tuple" do
+      check all ok_result <- ok_generator() do
+        ref = make_ref()
+        parent = self()
+        fun = fn term -> send(parent, {ref, term}) end
+
+        assert ok_result == ResultStd.inspect_err(ok_result, fun)
+        refute_received {^ref, ^ok_result}
       end
     end
   end

@@ -66,6 +66,16 @@ defmodule ResultStd do
     result
   end
 
+  @spec inspect_err(result(), (any() -> any())) :: result()
+  def inspect_err(result, fun) do
+    case result do
+      err!(reason) -> fun.(reason)
+      _ -> :ok
+    end
+
+    result
+  end
+
   ###
 
   @spec and_then(result(), (any() -> result())) :: result()
