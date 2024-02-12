@@ -216,7 +216,129 @@ defmodule ResultStdTest do
     end
   end
 
-  ####
+  describe "expect/2" do
+    property "unwrap the term for any :ok tuple" do
+      check all {ok_result, term} <- ok_generator() do
+        assert term == ResultStd.expect(ok_result, "Unexpected error")
+      end
+    end
+
+    property "raises an error for any :error tuple (non binary reason)" do
+      check all {err_result, term} <- err_generator(),
+                not is_binary(term) do
+        assert_raise RuntimeError, "Unexpected error: #{inspect(term)}", fn ->
+          ResultStd.expect(err_result, "Unexpected error")
+        end
+      end
+    end
+
+    property "raises an error for any :error tuple (binary reason)" do
+      check all reason <- string(:utf8) do
+        err_result = {:error, reason}
+
+        assert_raise RuntimeError, "Unexpected error: #{reason}", fn ->
+          ResultStd.expect(err_result, "Unexpected error")
+        end
+      end
+    end
+  end
+
+  describe "unwrap/1" do
+    property "unwrap the term for any :ok tuple" do
+      check all {ok_result, term} <- ok_generator() do
+        assert term == ResultStd.unwrap(ok_result)
+      end
+    end
+
+    property "raises an error for any :error tuple (non binary reason)" do
+      check all {err_result, term} <- err_generator(),
+                not is_binary(term) do
+        assert_raise RuntimeError, inspect(term), fn ->
+          ResultStd.unwrap(err_result)
+        end
+      end
+    end
+
+    property "raises an error for any :error tuple (binary reason)" do
+      check all reason <- string(:utf8) do
+        err_result = {:error, reason}
+
+        assert_raise RuntimeError, reason, fn ->
+          ResultStd.unwrap(err_result)
+        end
+      end
+    end
+  end
+
+  describe "expect_err/2" do
+    property "raises an error for any :ok tuple (non binary reason)" do
+      check all {ok_result, term} <- ok_generator(),
+                not is_binary(term) do
+        assert_raise RuntimeError, "Unexpected error: #{inspect(term)}", fn ->
+          ResultStd.expect_err(ok_result, "Unexpected error")
+        end
+      end
+    end
+
+    property "raises an error for any :ok tuple (binary reason)" do
+      check all reason <- string(:utf8) do
+        ok_result = {:ok, reason}
+
+        assert_raise RuntimeError, "Unexpected error: #{reason}", fn ->
+          ResultStd.expect_err(ok_result, "Unexpected error")
+        end
+      end
+    end
+
+    property "unwrap the term for any :err tuple" do
+      check all {err_result, term} <- err_generator() do
+        assert term == ResultStd.expect_err(err_result, "Unexpected error")
+      end
+    end
+  end
+
+  describe "unwrap_err/1" do
+    property "raises an error for any :ok tuple (non binary reason)" do
+      check all {ok_result, term} <- ok_generator(),
+                not is_binary(term) do
+        assert_raise RuntimeError, inspect(term), fn ->
+          ResultStd.unwrap_err(ok_result)
+        end
+      end
+    end
+
+    property "raises an error for any :ok tuple (binary reason)" do
+      check all term <- string(:utf8) do
+        ok_result = {:ok, term}
+
+        assert_raise RuntimeError, term, fn ->
+          ResultStd.unwrap_err(ok_result)
+        end
+      end
+    end
+
+    property "unwrap the term for any :error tuple" do
+      check all {err_result, term} <- err_generator() do
+        assert term == ResultStd.unwrap_err(err_result)
+      end
+    end
+  end
+
+  describe "and_result/2" do
+    property "return the second argument for any :ok tuple" do
+      check all {ok_result, _term} <- ok_generator(),
+                {result, _term} <- result_generator() do
+        assert result == ResultStd.and_result(ok_result, result)
+      end
+    end
+
+    property "return the first argument for any :error tuple" do
+      check all {err_result, _term} <- err_generator(),
+                {result, _term} <- result_generator() do
+        assert err_result == ResultStd.and_result(err_result, result)
+      end
+    end
+  end
 
   describe "and_then/2" do
     property "call the callback for any :ok tuple" do
@@ -233,6 +355,24 @@ defmodule ResultStdTest do
       end
     end
   end
+
+  describe "or_result/2" do
+    property "return the first argument for any :ok tuple" do
+      check all {ok_result, _term} <- ok_generator(),
+                {result, _term} <- result_generator() do
+        assert ok_result == ResultStd.or_result(ok_result, result)
+      end
+    end
+
+    property "return the second argument for any :error tuple" do
+      check all {err_result, _term} <- err_generator(),
+                {result, _term} <- result_generator() do
+        assert result == ResultStd.or_result(err_result, result)
+      end
+    end
+  end
+
+  ####
 
   describe "or_else/2" do
     property "don't call the callback for any :ok tuple" do
@@ -262,23 +402,6 @@ defmodule ResultStdTest do
       check all {err_result, term} <- err_generator() do
         fun = fn ^term -> {:ok, {:wrapper, term}} end
         assert {:ok, {:wrapper, term}} == ResultStd.unwrap_or_else(err_result, fun)
-      end
-    end
-  end
-
-  describe "unwrap/1" do
-    property "unwrap the term for any :ok tuple" do
-      check all {ok_result, _term} <- ok_generator() do
-        {:ok, term} = ok_result
-        assert term == ResultStd.unwrap(ok_result)
-      end
-    end
-
-    property "raise for any :error tuple" do
-      check all {err_result, _term} <- err_generator() do
-        assert_raise FunctionClauseError, fn ->
-          ResultStd.unwrap(err_result)
-        end
       end
     end
   end
@@ -330,6 +453,12 @@ defmodule ResultStdTest do
   defp err_generator() do
     gen all term <- term() do
       {{:error, term}, term}
+    end
+  end
+
+  defp result_generator() do
+    gen all result_tuple <- one_of([ok_generator(), err_generator()]) do
+      result_tuple
     end
   end
 end

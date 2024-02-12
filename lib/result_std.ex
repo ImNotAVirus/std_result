@@ -76,11 +76,39 @@ defmodule ResultStd do
     result
   end
 
-  ###
+  @spec expect(result(), String.t()) :: any() | no_return()
+  def expect(ok!(term), _label), do: term
+  def expect(err!(reason), label) when is_binary(reason), do: raise("#{label}: #{reason}")
+  def expect(err!(reason), label), do: raise("#{label}: #{inspect(reason)}")
+
+  @spec unwrap(result()) :: any() | no_return()
+  def unwrap(ok!(term)), do: term
+  def unwrap(err!(reason)) when is_binary(reason), do: raise(reason)
+  def unwrap(err!(reason)), do: raise(inspect(reason))
+
+  @spec expect_err(result(), String.t()) :: any() | no_return()
+  def expect_err(ok!(reason), label) when is_binary(reason), do: raise("#{label}: #{reason}")
+  def expect_err(ok!(reason), label), do: raise("#{label}: #{inspect(reason)}")
+  def expect_err(err!(term), _label), do: term
+
+  @spec unwrap_err(result()) :: any() | no_return()
+  def unwrap_err(ok!(reason)) when is_binary(reason), do: raise(reason)
+  def unwrap_err(ok!(reason)), do: raise(inspect(reason))
+  def unwrap_err(err!(term)), do: term
+
+  @spec and_result(result(), result()) :: result()
+  def and_result(ok!(_term), result), do: result
+  def and_result(err!(_reason) = error, _result), do: error
 
   @spec and_then(result(), (any() -> result())) :: result()
   def and_then(ok!(term), fun), do: fun.(term)
   def and_then(err!(_reason) = error, _fun), do: error
+
+  @spec or_result(result(), result()) :: result()
+  def or_result(ok!(_term) = ok, _result), do: ok
+  def or_result(err!(_reason), result), do: result
+
+  ###
 
   @spec or_else(result(), (any() -> result())) :: result()
   def or_else(ok!(_term) = ok, _fun), do: ok
@@ -89,9 +117,6 @@ defmodule ResultStd do
   @spec unwrap_or_else(result(), (any() -> any())) :: any()
   def unwrap_or_else(ok!(term), _fun), do: term
   def unwrap_or_else(err!(reason), fun), do: fun.(reason)
-
-  @spec unwrap(ok()) :: any()
-  def unwrap(ok!(term)), do: term
 
   @spec partition_result([result()]) :: {[ok()], [err()]}
   def partition_result(results) do
