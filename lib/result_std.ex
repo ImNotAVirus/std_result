@@ -108,11 +108,13 @@ defmodule ResultStd do
   def or_result(ok!(_term) = ok, _result), do: ok
   def or_result(err!(_reason), result), do: result
 
-  ###
-
   @spec or_else(result(), (any() -> result())) :: result()
   def or_else(ok!(_term) = ok, _fun), do: ok
   def or_else(err!(reason), fun), do: fun.(reason)
+
+  @spec unwrap_or(result(), any()) :: any()
+  def unwrap_or(ok!(term), _default), do: term
+  def unwrap_or(err!(_reason), default), do: default
 
   @spec unwrap_or_else(result(), (any() -> any())) :: any()
   def unwrap_or_else(ok!(term), _fun), do: term

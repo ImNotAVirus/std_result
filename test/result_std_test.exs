@@ -372,8 +372,6 @@ defmodule ResultStdTest do
     end
   end
 
-  ####
-
   describe "or_else/2" do
     property "don't call the callback for any :ok tuple" do
       check all {ok_result, _term} <- ok_generator() do
@@ -386,6 +384,20 @@ defmodule ResultStdTest do
       check all {err_result, term} <- err_generator() do
         fun = fn ^term -> {:ok, {:wrapper, term}} end
         assert {:ok, {:wrapper, term}} == ResultStd.or_else(err_result, fun)
+      end
+    end
+  end
+
+  describe "unwrap_or/2" do
+    property "unwrap the term for any :ok tuple" do
+      check all {ok_result, term} <- ok_generator() do
+        assert term == ResultStd.unwrap_or(ok_result, :default)
+      end
+    end
+
+    property "returns the default for any :error tuple" do
+      check all {err_result, _term} <- err_generator() do
+        assert :default == ResultStd.unwrap_or(err_result, :default)
       end
     end
   end
