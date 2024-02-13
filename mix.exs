@@ -1,9 +1,9 @@
-defmodule ResultStd.MixProject do
+defmodule StdResult.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :result_std,
+      app: :std_result,
       version: "0.1.0",
       elixir: "~> 1.12",
       deps: deps()

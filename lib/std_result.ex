@@ -1,6 +1,6 @@
-defmodule ResultStd do
+defmodule StdResult do
   @moduledoc """
-  TODO: Documentation for `ResultStd`.
+  TODO: Documentation for `StdResult`.
   """
 
   @type ok :: {:ok, any()}
