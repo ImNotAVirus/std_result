@@ -54,22 +54,6 @@ One of the most popular solutions is to use `with` which would give something li
 
 ```elixir
 with {:ok, port_str} <- System.fetch_env("PORT"),
-     port <- String.to_integer(port_str) do
-  if x >= 0 do
-    {:ok, x}
-  else
-    {:error, "PORT must be a positive number"}
-  end
-else
-  # Return by System.fetch_env/1
-  :error -> {:error, "PORT env required"}
-end
-```
-
-or
-
-```elixir
-with {:ok, port_str} <- System.fetch_env("PORT"),
      port when port > 0 <- String.to_integer(port_str) do
   {:ok, port}
 else
