@@ -22,7 +22,8 @@ defmodule StdResult do
   Wrap the input inside a tuple if needed.
 
   NOTE: This function does not try to guess the type of Result and needs
-  to receive an atom `:ok` or `:error`.
+  to receive an atom `:ok` or `:error`. If you want to wrap any term, you
+  can use `ok/1` or `err/1`.
 
   It is mainly used to manipulate, normalize and chain Elixir functions
   such as `System.fetch_env/1` or `System.delete_env/1` which return
@@ -39,8 +40,8 @@ defmodule StdResult do
       iex> StdResult.normalize({:ok, :foo})
       {:ok, :foo}
 
-      iex> StdResult.normalize({:ok, :bar})
-      {:ok, :bar}
+      iex> StdResult.normalize({:error, :bar})
+      {:error, :bar}
 
   """
   @spec normalize(t) :: result() when t: :ok | :error | result()
