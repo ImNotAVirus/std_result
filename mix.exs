@@ -11,7 +11,7 @@ defmodule StdResult.MixProject do
       version: @version,
       elixir: "~> 1.12",
       name: @app_name,
-      description: "",
+      description: "Yet another way to standardize function returns",
       aliases: [docs: &build_docs/1],
       package: package(),
       deps: deps(),
