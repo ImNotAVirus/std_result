@@ -395,30 +395,152 @@ defmodule StdResult do
   def unwrap_err(ok!(reason)), do: raise(inspect(reason))
   def unwrap_err(err!(term)), do: term
 
+  @doc ~S"""
+  Returns the right operand if the result is Ok, otherwise returns the
+  Err value.
+
+  Arguments passed to `and_result/2` are eagerly evaluated; if you are
+  passing the result of a function call, it is recommended to use
+  `and_then/2`, which is lazily evaluated.
+
+  ## Examples
+
+      iex> StdResult.and_result({:ok, 2}, {:error, "late error"})
+      {:error, "late error"}
+
+      iex> StdResult.and_result({:error, "early error"}, {:error, "foo"})
+      {:error, "early error"}
+
+      iex> StdResult.and_result({:error, "not a 2"}, {:error, "late error"})
+      {:error, "not a 2"}
+
+      iex> StdResult.and_result({:ok, 2}, {:ok, "different result type"})
+      {:ok, "different result type"}
+
+  """
   @spec and_result(result(), result()) :: result()
   def and_result(ok!(_term), result), do: result
   def and_result(err!(_reason) = error, _result), do: error
 
+  @doc ~S"""
+  Calls the callback if the result is Ok, otherwise returns the Err value.
+
+  This function can be used for control flow based on Result values.
+
+  ## Examples
+
+      iex> StdResult.and_then({:ok, 2}, &{:ok, &1 * 2})
+      {:ok, 4}
+
+      iex> StdResult.and_then({:ok, 1_000_000}, fn _ -> {:error, "overflowed"} end)
+      {:error, "overflowed"}
+
+      iex> StdResult.and_then({:error, "not a number"}, &(&1 * 2))
+      {:error, "not a number"}
+
+  """
   @spec and_then(result(), (any() -> result())) :: result()
   def and_then(ok!(term), fun), do: fun.(term)
   def and_then(err!(_reason) = error, _fun), do: error
 
+  @doc ~S"""
+  Returns the right operand if the result is Err, otherwise returns the
+  Ok value.
+
+  Arguments passed to `or_result/2` are eagerly evaluated; if you are
+  passing the result of a function call, it is recommended to use
+  `or_else/2`, which is lazily evaluated.
+
+  ## Examples
+
+      iex> StdResult.or_result({:ok, 2}, {:error, "late error"})
+      {:ok, 2}
+
+      iex> StdResult.or_result({:error, "early error"}, {:ok, 2})
+      {:ok, 2}
+
+      iex> StdResult.or_result({:error, "not a 2"}, {:error, "late error"})
+      {:error, "late error"}
+
+      iex> StdResult.or_result({:ok, 2}, {:ok, 100})
+      {:ok, 2}
+
+  """
   @spec or_result(result(), result()) :: result()
   def or_result(ok!(_term) = ok, _result), do: ok
   def or_result(err!(_reason), result), do: result
 
+  @doc ~S"""
+  Calls the callback if the result is Err, otherwise returns the Ok value.
+
+  This function can be used for control flow based on Result values.
+
+  ## Examples
+
+      iex> StdResult.or_else({:ok, 2}, &{:ok, &1 * 2})
+      {:ok, 2}
+
+      iex> StdResult.or_else({:ok, 2}, &{:error, &1 * 4})
+      {:ok, 2}
+
+      iex> StdResult.or_else({:error, 2}, &{:ok, &1 * 2})
+      {:ok, 4}
+
+      iex> StdResult.or_else({:error, 2}, &{:error, &1 * 4})
+      {:error, 8}
+
+  """
   @spec or_else(result(), (any() -> result())) :: result()
   def or_else(ok!(_term) = ok, _fun), do: ok
   def or_else(err!(reason), fun), do: fun.(reason)
 
+  @doc ~S"""
+  Returns the contained Ok value or a provided default.
+
+  Arguments passed to `unwrap_or/2` are eagerly evaluated; if you are
+  passing the result of a function call, it is recommended to use
+  `unwrap_or_else/2`, which is lazily evaluated.
+
+  ## Examples
+
+      iex> StdResult.unwrap_or({:ok, 2}, 42)
+      2
+
+      iex> StdResult.unwrap_or({:error, "error"}, 42)
+      42
+
+  """
   @spec unwrap_or(result(), any()) :: any()
   def unwrap_or(ok!(term), _default), do: term
   def unwrap_or(err!(_reason), default), do: default
 
+  @doc ~S"""
+  Returns the contained Ok value or computes it from a closure.
+
+  ## Examples
+
+      iex> StdResult.unwrap_or_else({:ok, 2}, &String.length/1)
+      2
+
+      iex> StdResult.unwrap_or_else({:error, "foo"}, &String.length/1)
+      3
+
+  """
   @spec unwrap_or_else(result(), (any() -> any())) :: any()
   def unwrap_or_else(ok!(term), _fun), do: term
   def unwrap_or_else(err!(reason), fun), do: fun.(reason)
 
+  @doc ~S"""
+  Partition a sequence of Results into one list of all the Ok elements
+  and another list of all the Err elements.
+
+  ## Examples
+
+      iex> ok_and_errors = [{:ok, 1}, {:error, false}, {:error, true}, {:ok, 2}]
+      iex> StdResult.partition_result(ok_and_errors)
+      {[1, 2], [false, true]}
+
+  """
   @spec partition_result([result()]) :: {[ok()], [err()]}
   def partition_result(results) do
     {oks, errors} =
