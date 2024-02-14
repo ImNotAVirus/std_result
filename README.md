@@ -1,5 +1,12 @@
 # StdResult
 
+<!-- MDOC !-->
+
+[![Hex.pm version](https://img.shields.io/hexpm/v/std_result.svg?style=flat)](https://hex.pm/packages/std_result)
+[![Hex.pm license](https://img.shields.io/hexpm/l/std_result.svg?style=flat)](https://hex.pm/packages/std_result)
+[![Build Status](https://github.com/ImNotAVirus/std_result/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ImNotAVirus/std_result/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/ImNotAVirus/std_result/badge.svg?branch=main)](https://coveralls.io/github/ImNotAVirus/std_result?branch=main)
+
 **TODO: Add description**
 
 ## Installation

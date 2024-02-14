@@ -1,7 +1,8 @@
 defmodule StdResult do
-  @moduledoc """
-  TODO: Documentation for `StdResult`.
-  """
+  @moduledoc "README.md"
+             |> File.read!()
+             |> String.split("<!-- MDOC !-->")
+             |> Enum.fetch!(1)
 
   @type ok :: {:ok, any()}
   @type err :: {:error, any()}
