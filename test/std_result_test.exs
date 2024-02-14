@@ -12,21 +12,21 @@ defmodule StdResultTest do
     end
   end
 
-  describe "normalize/1" do
+  describe "normalize_result/1" do
     test "return a :ok tuple for :ok value" do
-      assert {:ok, {}} == StdResult.normalize(:ok)
+      assert {:ok, {}} == StdResult.normalize_result(:ok)
     end
 
     test "return a :error tuple for :error value" do
-      assert {:error, {}} == StdResult.normalize(:error)
+      assert {:error, {}} == StdResult.normalize_result(:error)
     end
 
     test "return the given input for a :ok tuple" do
-      assert {:ok, :foo} == StdResult.normalize({:ok, :foo})
+      assert {:ok, :foo} == StdResult.normalize_result({:ok, :foo})
     end
 
     test "return the given input for a :error tuple" do
-      assert {:error, :bar} == StdResult.normalize({:error, :bar})
+      assert {:error, :bar} == StdResult.normalize_result({:error, :bar})
     end
   end
 

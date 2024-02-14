@@ -31,24 +31,24 @@ defmodule StdResult do
 
   ## Examples
 
-      iex> StdResult.normalize(:ok)
+      iex> StdResult.normalize_result(:ok)
       {:ok, {}}
 
-      iex> StdResult.normalize(:error)
+      iex> StdResult.normalize_result(:error)
       {:error, {}}
 
-      iex> StdResult.normalize({:ok, :foo})
+      iex> StdResult.normalize_result({:ok, :foo})
       {:ok, :foo}
 
-      iex> StdResult.normalize({:error, :bar})
+      iex> StdResult.normalize_result({:error, :bar})
       {:error, :bar}
 
   """
-  @spec normalize(t) :: result() when t: :ok | :error | result()
-  def normalize(:ok), do: ok!(unit!())
-  def normalize(:error), do: err!(unit!())
-  def normalize(ok!(_term) = ok), do: ok
-  def normalize(err!(_term) = error), do: error
+  @spec normalize_result(t) :: result() when t: :ok | :error | result()
+  def normalize_result(:ok), do: ok!(unit!())
+  def normalize_result(:error), do: err!(unit!())
+  def normalize_result(ok!(_term) = ok), do: ok
+  def normalize_result(err!(_term) = error), do: error
 
   @doc ~S"""
   Wrap any term inside a `:ok` tuple.
@@ -322,7 +322,7 @@ defmodule StdResult do
   expect the Result should be Ok.
 
       iex> System.fetch_env("IMPORTANT_PATH")
-      ...> |> StdResult.normalize()
+      ...> |> StdResult.normalize_result()
       ...> |> StdResult.expect("env variable `IMPORTANT_PATH` should be set by `wrapper_script.sh`")
       ** (RuntimeError) env variable `IMPORTANT_PATH` should be set by `wrapper_script.sh`: {}
 
