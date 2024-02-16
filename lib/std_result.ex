@@ -6,7 +6,12 @@ defmodule StdResult do
 
   - `ok!/1`: same as `ok/1` but can be used in guards, pattern matching, ...
   - `err!/1`: same as `err/1` but can be used in guards, pattern matching, ...
-  - `unit!/1`: same as `unit/1` but can be used in guards, pattern matching, ...
+  - `unit!/0`: same as `unit/0` but can be used in guards, pattern matching, ...
+
+  ## Note
+
+  In this library, we will use the term `Ok` for `:ok tuple` / `:ok Result` and
+  `Err` for `:error tuple` / `:error Result`.
 
   ## Examples
 
@@ -38,7 +43,7 @@ defmodule StdResult do
   @doc "Same as `err/1` but can be used in guards, pattern matching, ..."
   defmacro err!(term), do: {:error, term}
 
-  @doc "Same as `unit/1` but can be used in guards, pattern matching, ..."
+  @doc "Same as `unit/0` but can be used in guards, pattern matching, ..."
   defmacro unit!(), do: Macro.escape({})
 
   ## Public API - Functions
@@ -115,7 +120,7 @@ defmodule StdResult do
   def unit(), do: unit!()
 
   @doc ~S"""
-  Returns `true` if the result is Ok.
+  Returns `true` if the result is `Ok`.
 
   ## Examples
 
@@ -131,7 +136,7 @@ defmodule StdResult do
   def ok?(err!(_reason)), do: false
 
   @doc ~S"""
-  Returns `true` if the result is Ok and the value inside of
+  Returns `true` if the result is `Ok` and the value inside of
   it matches a predicate.
 
   ## Examples
@@ -151,7 +156,7 @@ defmodule StdResult do
   def ok_and?(err!(_reason), _fun), do: false
 
   @doc ~S"""
-  Returns `true` if the result is Err.
+  Returns `true` if the result is `Err`.
 
   ## Examples
 
@@ -167,7 +172,7 @@ defmodule StdResult do
   def err?(err!(_reason)), do: true
 
   @doc ~S"""
-  Returns `true` if the result is Err and the value inside of it matches
+  Returns `true` if the result is `Err` and the value inside of it matches
   a predicate.
 
   ## Examples
@@ -187,8 +192,8 @@ defmodule StdResult do
   def err_and?(err!(reason), fun), do: fun.(reason)
 
   @doc ~S"""
-  Maps a Result into another by applying a function to a contained Ok
-  value, leaving an Err value untouched.
+  Maps a Result into another by applying a function to a contained `Ok`
+  value, leaving an `Err` value untouched.
 
   This function can be used to compose the results of two functions.
 
@@ -206,8 +211,8 @@ defmodule StdResult do
   def map(err!(_reason) = error, _fun), do: error
 
   @doc ~S"""
-  Returns the provided default (if Err), or applies a function to the
-  contained value (if Ok).
+  Returns the provided default (if `Err`), or applies a function to the
+  contained value (if `Ok`).
 
   Arguments passed to `map_or/3` are eagerly evaluated; if you are passing
   the result of a function call, it is recommended to use `map_or_else/3`,
@@ -228,7 +233,7 @@ defmodule StdResult do
 
   @doc ~S"""
   Maps a Result to a value by applying fallback function `default` to a
-  contained Err value, or function `fun` to a contained Ok value.
+  contained `Err` value, or function `fun` to a contained `Ok` value.
 
   This function can be used to unpack a successful result while handling an
   error.
@@ -247,8 +252,8 @@ defmodule StdResult do
   def map_or_else(err!(reason), default, _fun), do: default.(reason)
 
   @doc ~S"""
-  Maps a Result into another by applying a function to a contained Err
-  value, leaving an Ok value untouched.
+  Maps a Result into another by applying a function to a contained `Err`
+  value, leaving an `Ok` value untouched.
 
   This function can be used to pass through a successful result while
   handling an error.
@@ -267,7 +272,7 @@ defmodule StdResult do
   def map_err(err!(reason), fun), do: reason |> fun.() |> err!()
 
   @doc ~S"""
-  Calls the provided closure with a reference to the contained value (if Ok).
+  Calls the provided closure with a reference to the contained value (if `Ok`).
 
   ## Examples
 
@@ -297,7 +302,7 @@ defmodule StdResult do
   end
 
   @doc ~S"""
-  Calls the provided closure with a reference to the contained value (if Err).
+  Calls the provided closure with a reference to the contained value (if `Err`).
 
   ## Examples
 
@@ -327,10 +332,10 @@ defmodule StdResult do
   end
 
   @doc ~S"""
-  Returns the contained Ok value.
+  Returns the contained `Ok` value.
 
   Because this function may raise, its use is generally discouraged.
-  Instead, prefer to use pattern matching and handle the Err case
+  Instead, prefer to use pattern matching and handle the `Err` case
   explicitly, or call `unwrap_or/2` or `unwrap_or_else/2`.
 
   ## Examples
@@ -344,7 +349,7 @@ defmodule StdResult do
   ## Recommended Message Style
 
   We recommend that `expect/2` messages are used to describe the reason you
-  expect the Result should be Ok.
+  expect the Result should be `Ok`.
 
       iex> System.fetch_env("IMPORTANT_PATH")
       ...> |> StdResult.normalize_result()
@@ -363,10 +368,10 @@ defmodule StdResult do
   def expect(err!(reason), label), do: raise("#{label}: #{inspect(reason)}")
 
   @doc ~S"""
-  Returns the contained Ok value.
+  Returns the contained `Ok` value.
 
   Because this function may raise, its use is generally discouraged.
-  Instead, prefer to use pattern matching and handle the Err case
+  Instead, prefer to use pattern matching and handle the `Err` case
   explicitly, or call `unwrap_or/2` or `unwrap_or_else/2`.
 
   ## Examples
@@ -384,7 +389,7 @@ defmodule StdResult do
   def unwrap(err!(reason)), do: raise(inspect(reason))
 
   @doc ~S"""
-  Returns the contained Err value.
+  Returns the contained `Err` value.
 
   For more details, see: `expect/2`
 
@@ -403,7 +408,7 @@ defmodule StdResult do
   def expect_err(err!(term), _label), do: term
 
   @doc ~S"""
-  Returns the contained Err value.
+  Returns the contained `Err` value.
 
   For more details, see: `unwrap/1`
 
@@ -422,8 +427,8 @@ defmodule StdResult do
   def unwrap_err(err!(term)), do: term
 
   @doc ~S"""
-  Returns the right operand if the result is Ok, otherwise returns the
-  Err value.
+  Returns the right operand if the result is `Ok`, otherwise returns the
+  `Err` value.
 
   Arguments passed to `and_result/2` are eagerly evaluated; if you are
   passing the result of a function call, it is recommended to use
@@ -449,7 +454,7 @@ defmodule StdResult do
   def and_result(err!(_reason) = error, _result), do: error
 
   @doc ~S"""
-  Calls the callback if the result is Ok, otherwise returns the Err value.
+  Calls the callback if the result is `Ok`, otherwise returns the `Err` value.
 
   This function can be used for control flow based on Result values.
 
@@ -470,8 +475,8 @@ defmodule StdResult do
   def and_then(err!(_reason) = error, _fun), do: error
 
   @doc ~S"""
-  Returns the right operand if the result is Err, otherwise returns the
-  Ok value.
+  Returns the right operand if the result is `Err`, otherwise returns the
+  `Ok` value.
 
   Arguments passed to `or_result/2` are eagerly evaluated; if you are
   passing the result of a function call, it is recommended to use
@@ -497,7 +502,7 @@ defmodule StdResult do
   def or_result(err!(_reason), result), do: result
 
   @doc ~S"""
-  Calls the callback if the result is Err, otherwise returns the Ok value.
+  Calls the callback if the result is `Err`, otherwise returns the `Ok` value.
 
   This function can be used for control flow based on Result values.
 
@@ -521,7 +526,7 @@ defmodule StdResult do
   def or_else(err!(reason), fun), do: fun.(reason)
 
   @doc ~S"""
-  Returns the contained Ok value or a provided default.
+  Returns the contained `Ok` value or a provided default.
 
   Arguments passed to `unwrap_or/2` are eagerly evaluated; if you are
   passing the result of a function call, it is recommended to use
@@ -541,7 +546,7 @@ defmodule StdResult do
   def unwrap_or(err!(_reason), default), do: default
 
   @doc ~S"""
-  Returns the contained Ok value or computes it from a closure.
+  Returns the contained `Ok` value or computes it from a closure.
 
   ## Examples
 
@@ -557,8 +562,8 @@ defmodule StdResult do
   def unwrap_or_else(err!(reason), fun), do: fun.(reason)
 
   @doc ~S"""
-  Partition a sequence of Results into one list of all the Ok elements
-  and another list of all the Err elements.
+  Partition a sequence of Results into one list of all the `Ok` elements
+  and another list of all the `Err` elements.
 
   ## Examples
 
