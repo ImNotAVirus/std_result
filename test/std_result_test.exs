@@ -1,6 +1,5 @@
 defmodule StdResultTest do
   use ExUnit.Case, async: true
-  use ExUnitProperties
 
   doctest StdResult
 
@@ -31,6 +30,8 @@ defmodule StdResultTest do
   end
 
   ## Tests - Properties
+
+  use ExUnitProperties
 
   describe "ok/1" do
     property "wrap any term in :ok tuple" do

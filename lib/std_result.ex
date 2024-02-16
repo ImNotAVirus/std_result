@@ -1,8 +1,35 @@
 defmodule StdResult do
-  @moduledoc "README.md"
-             |> File.read!()
-             |> String.split("<!-- MDOC !-->")
-             |> Enum.fetch!(1)
+  @moduledoc ~S"""
+  `StdResult` provides a way to standardize the return types of Elixir functions.
+
+  To help with pattern matching, the API also provides 3 macros:
+
+  - `ok!/1`: same as `ok/1` but can be used in guards, pattern matching, ...
+  - `err!/1`: same as `err/1` but can be used in guards, pattern matching, ...
+  - `unit!/1`: same as `unit/1` but can be used in guards, pattern matching, ...
+
+  ## Examples
+
+      iex> import StdResult
+      iex> System.fetch_env("PORT")
+      ...> |> normalize_result() # This will transform `:error` into a `:error` tuple
+      ...> |> or_result(err("PORT env required")) # If there is an error, explicit the message
+      ...> |> map(&String.to_integer/1) # If no error, parse the string as an integer
+      ...> |> and_then(&(if &1 >= 0, do: ok(&1), else: err("PORT must be a positive number, got: #{&1}"))) # Test if number is positive
+
+      # The result will be either:
+      # - `{:ok, port}`
+      # - `{:error, "PORT env required"}`
+      # - `{:error, "PORT must be a positive number, got: <value>"}`
+
+  ## Notes
+
+  To harmonize this library's API, some Elixir conventions have not been followed.
+
+  For example, the function `is_ok/2` is not called `ok?` because `is_ok_and/2` 
+  exists and it's not possible to call it something like `ok?_and`.
+
+  """
 
   @type ok :: {:ok, any()}
   @type ok(t) :: {:ok, t}
