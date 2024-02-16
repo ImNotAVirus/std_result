@@ -22,13 +22,6 @@ defmodule StdResult do
       # - `{:error, "PORT env required"}`
       # - `{:error, "PORT must be a positive number, got: <value>"}`
 
-  ## Notes
-
-  To harmonize this library's API, some Elixir conventions have not been followed.
-
-  For example, the function `is_ok/2` is not called `ok?` because `is_ok_and/2` 
-  exists and it's not possible to call it something like `ok?_and`.
-
   """
 
   @type ok :: {:ok, any()}
@@ -39,8 +32,13 @@ defmodule StdResult do
 
   ## Public API - Macros
 
+  @doc "Same as `ok/1` but can be used in guards, pattern matching, ..."
   defmacro ok!(term), do: {:ok, term}
+
+  @doc "Same as `err/1` but can be used in guards, pattern matching, ..."
   defmacro err!(term), do: {:error, term}
+
+  @doc "Same as `unit/1` but can be used in guards, pattern matching, ..."
   defmacro unit!(), do: Macro.escape({})
 
   ## Public API - Functions
@@ -121,16 +119,16 @@ defmodule StdResult do
 
   ## Examples
 
-      iex> StdResult.is_ok({:ok, -3})
+      iex> StdResult.ok?({:ok, -3})
       true
 
-      iex> StdResult.is_ok({:error, "Some error message"})
+      iex> StdResult.ok?({:error, "Some error message"})
       false
 
   """
-  @spec is_ok(result()) :: boolean()
-  def is_ok(ok!(_term)), do: true
-  def is_ok(err!(_reason)), do: false
+  @spec ok?(result()) :: boolean()
+  def ok?(ok!(_term)), do: true
+  def ok?(err!(_reason)), do: false
 
   @doc ~S"""
   Returns `true` if the result is Ok and the value inside of
@@ -138,35 +136,35 @@ defmodule StdResult do
 
   ## Examples
 
-      iex> StdResult.is_ok_and({:ok, 2}, &(&1 > 1))
+      iex> StdResult.ok_and?({:ok, 2}, &(&1 > 1))
       true
 
-      iex> StdResult.is_ok_and({:ok, 0}, &(&1 > 1))
+      iex> StdResult.ok_and?({:ok, 0}, &(&1 > 1))
       false
 
-      iex> StdResult.is_ok_and({:error, "hey"}, &(&1 > 1))
+      iex> StdResult.ok_and?({:error, "hey"}, &(&1 > 1))
       false
 
   """
-  @spec is_ok_and(result(), (any() -> boolean())) :: boolean()
-  def is_ok_and(ok!(term), fun), do: fun.(term)
-  def is_ok_and(err!(_reason), _fun), do: false
+  @spec ok_and?(result(), (any() -> boolean())) :: boolean()
+  def ok_and?(ok!(term), fun), do: fun.(term)
+  def ok_and?(err!(_reason), _fun), do: false
 
   @doc ~S"""
   Returns `true` if the result is Err.
 
   ## Examples
 
-      iex> StdResult.is_err({:ok, -3})
+      iex> StdResult.err?({:ok, -3})
       false
 
-      iex> StdResult.is_err({:error, "Some error message"})
+      iex> StdResult.err?({:error, "Some error message"})
       true
 
   """
-  @spec is_err(result()) :: boolean()
-  def is_err(ok!(_term)), do: false
-  def is_err(err!(_reason)), do: true
+  @spec err?(result()) :: boolean()
+  def err?(ok!(_term)), do: false
+  def err?(err!(_reason)), do: true
 
   @doc ~S"""
   Returns `true` if the result is Err and the value inside of it matches
@@ -174,19 +172,19 @@ defmodule StdResult do
 
   ## Examples
 
-      iex> StdResult.is_err_and({:error, :not_found}, &(&1 == :not_found))
+      iex> StdResult.err_and?({:error, :not_found}, &(&1 == :not_found))
       true
 
-      iex> StdResult.is_err_and({:error, :failed}, &(&1 == :not_found))
+      iex> StdResult.err_and?({:error, :failed}, &(&1 == :not_found))
       false
 
-      iex> StdResult.is_err_and({:ok, 123}, &(&1 == :not_found))
+      iex> StdResult.err_and?({:ok, 123}, &(&1 == :not_found))
       false
 
   """
-  @spec is_err_and(result(), (any() -> boolean())) :: boolean()
-  def is_err_and(ok!(_term), _fun), do: false
-  def is_err_and(err!(reason), fun), do: fun.(reason)
+  @spec err_and?(result(), (any() -> boolean())) :: boolean()
+  def err_and?(ok!(_term), _fun), do: false
+  def err_and?(err!(reason), fun), do: fun.(reason)
 
   @doc ~S"""
   Maps a Result into another by applying a function to a contained Ok

@@ -49,76 +49,76 @@ defmodule StdResultTest do
     end
   end
 
-  describe "is_ok/1" do
+  describe "ok?/1" do
     property "returns true for any :ok tuple" do
       check all {ok_result, _term} <- ok_generator() do
-        assert true == StdResult.is_ok(ok_result)
+        assert true == StdResult.ok?(ok_result)
       end
     end
 
     property "returns false for any :error tuple" do
       check all {err_result, _term} <- err_generator() do
-        assert false == StdResult.is_ok(err_result)
+        assert false == StdResult.ok?(err_result)
       end
     end
   end
 
-  describe "is_ok_and/2" do
+  describe "ok_and?/2" do
     property "returns true if input is a :ok tuple and fun return true" do
       check all {ok_result, term} <- ok_generator() do
         fun = fn ^term -> true end
-        assert true == StdResult.is_ok_and(ok_result, fun)
+        assert true == StdResult.ok_and?(ok_result, fun)
       end
     end
 
     property "returns false if input is a :ok tuple and fun return false" do
       check all {ok_result, term} <- ok_generator() do
         fun = fn ^term -> false end
-        assert false == StdResult.is_ok_and(ok_result, fun)
+        assert false == StdResult.ok_and?(ok_result, fun)
       end
     end
 
     property "returns false for any :error tuple" do
       check all {err_result, _term} <- err_generator() do
         fun = fn _ -> true end
-        assert false == StdResult.is_ok_and(err_result, fun)
+        assert false == StdResult.ok_and?(err_result, fun)
       end
     end
   end
 
-  describe "is_err/1" do
+  describe "err?/1" do
     property "returns false for any :ok tuple" do
       check all {ok_result, _term} <- ok_generator() do
-        assert false == StdResult.is_err(ok_result)
+        assert false == StdResult.err?(ok_result)
       end
     end
 
     property "returns true for any :error tuple" do
       check all {err_result, _term} <- err_generator() do
-        assert true == StdResult.is_err(err_result)
+        assert true == StdResult.err?(err_result)
       end
     end
   end
 
-  describe "is_err_and/2" do
+  describe "err_and?/2" do
     property "returns true if input is a :error tuple and fun return true" do
       check all {err_result, term} <- err_generator() do
         fun = fn ^term -> true end
-        assert true == StdResult.is_err_and(err_result, fun)
+        assert true == StdResult.err_and?(err_result, fun)
       end
     end
 
     property "returns false if input is a :error tuple and fun return false" do
       check all {err_result, term} <- err_generator() do
         fun = fn ^term -> false end
-        assert false == StdResult.is_err_and(err_result, fun)
+        assert false == StdResult.err_and?(err_result, fun)
       end
     end
 
     property "returns false for any :ok tuple" do
       check all {ok_result, _term} <- ok_generator() do
         fun = fn _ -> true end
-        assert false == StdResult.is_err_and(ok_result, fun)
+        assert false == StdResult.err_and?(ok_result, fun)
       end
     end
   end
