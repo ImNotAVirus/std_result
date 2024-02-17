@@ -34,6 +34,7 @@ defmodule StdResult do
   @type err :: {:error, any()}
   @type err(e) :: {:error, e}
   @type result :: ok() | err()
+  @type result(t, e) :: ok(t) | err(e)
 
   ## Public API - Macros
 
@@ -74,7 +75,7 @@ defmodule StdResult do
       {:error, :bar}
 
   """
-  @spec normalize_result(t) :: result() when t: :ok | :error | result()
+  @spec normalize_result(u) :: result() when u: :ok | :error | result()
   def normalize_result(:ok), do: ok!(unit!())
   def normalize_result(:error), do: err!(unit!())
   def normalize_result(ok!(_term) = ok), do: ok
@@ -89,7 +90,7 @@ defmodule StdResult do
       {:ok, "value"}
 
   """
-  @spec ok(any()) :: ok()
+  @spec ok(t) :: ok(t) when t: any()
   def ok(term), do: ok!(term)
 
   @doc ~S"""
@@ -101,7 +102,7 @@ defmodule StdResult do
       {:error, "unexpected error"}
 
   """
-  @spec err(any()) :: err()
+  @spec err(e) :: err(e) when e: any()
   def err(term), do: err!(term)
 
   @doc ~S"""
@@ -151,7 +152,8 @@ defmodule StdResult do
       false
 
   """
-  @spec ok_and?(result(), (any() -> boolean())) :: boolean()
+  @spec ok_and?(result(t, e), (t -> boolean())) :: boolean()
+        when t: any(), e: any()
   def ok_and?(ok!(term), fun), do: fun.(term)
   def ok_and?(err!(_reason), _fun), do: false
 
@@ -187,7 +189,8 @@ defmodule StdResult do
       false
 
   """
-  @spec err_and?(result(), (any() -> boolean())) :: boolean()
+  @spec err_and?(result(t, e), (e -> boolean())) :: boolean()
+        when t: any(), e: any()
   def err_and?(ok!(_term), _fun), do: false
   def err_and?(err!(reason), fun), do: fun.(reason)
 
@@ -206,7 +209,8 @@ defmodule StdResult do
       {:error, :not_found}
 
   """
-  @spec map(result(), (any() -> any())) :: result()
+  @spec map(result(t, e), (t -> u)) :: result(u, e)
+        when t: any(), e: any(), u: any()
   def map(ok!(term), fun), do: term |> fun.() |> ok!()
   def map(err!(_reason) = error, _fun), do: error
 
@@ -227,7 +231,8 @@ defmodule StdResult do
       42
 
   """
-  @spec map_or(result(), any(), (any() -> any())) :: any()
+  @spec map_or(result(t, e), u, (t -> u)) :: u
+        when t: any(), e: any(), u: any()
   def map_or(ok!(term), _default, fun), do: fun.(term)
   def map_or(err!(_reason), default, _fun), do: default
 
@@ -247,7 +252,8 @@ defmodule StdResult do
       "bar"
 
   """
-  @spec map_or_else(result(), (any() -> any()), (any() -> any())) :: any()
+  @spec map_or_else(result(t, e), (e -> u), (t -> u)) :: u
+        when t: any(), e: any(), u: any()
   def map_or_else(ok!(term), _default, fun), do: fun.(term)
   def map_or_else(err!(reason), default, _fun), do: default.(reason)
 
@@ -267,7 +273,8 @@ defmodule StdResult do
       {:error, "error code: 13"}
 
   """
-  @spec map_err(result(), (any() -> any())) :: result()
+  @spec map_err(result(t, e), (e -> f)) :: result(t, f)
+        when t: any(), e: any(), f: any()
   def map_err(ok!(_term) = ok, _fun), do: ok
   def map_err(err!(reason), fun), do: reason |> fun.() |> err!()
 
@@ -291,7 +298,8 @@ defmodule StdResult do
       {:error, 42}
 
   """
-  @spec inspect(result(), (any() -> any())) :: result()
+  @spec inspect(result(t, e), (t -> any())) :: result(t, e)
+        when t: any(), e: any()
   def inspect(result, fun) do
     case result do
       ok!(term) -> fun.(term)
