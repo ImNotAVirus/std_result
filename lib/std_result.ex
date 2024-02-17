@@ -329,7 +329,8 @@ defmodule StdResult do
       {:error, 42}
 
   """
-  @spec inspect_err(result(), (any() -> any())) :: result()
+  @spec inspect_err(result(t, e), (e -> any())) :: result(t, e)
+        when t: any(), e: any()
   def inspect_err(result, fun) do
     case result do
       err!(reason) -> fun.(reason)
@@ -370,7 +371,8 @@ defmodule StdResult do
   by the current user”.
 
   """
-  @spec expect(result(), String.t()) :: any() | no_return()
+  @spec expect(result(t, e), String.t()) :: t | no_return()
+        when t: any(), e: any()
   def expect(ok!(term), _label), do: term
   def expect(err!(reason), label) when is_binary(reason), do: raise("#{label}: #{reason}")
   def expect(err!(reason), label), do: raise("#{label}: #{inspect(reason)}")
@@ -391,7 +393,8 @@ defmodule StdResult do
       ** (RuntimeError) emergency failure
 
   """
-  @spec unwrap(result()) :: any() | no_return()
+  @spec unwrap(result(t, e)) :: t | no_return()
+        when t: any(), e: any()
   def unwrap(ok!(term)), do: term
   def unwrap(err!(reason)) when is_binary(reason), do: raise(reason)
   def unwrap(err!(reason)), do: raise(inspect(reason))
@@ -410,7 +413,8 @@ defmodule StdResult do
       ** (RuntimeError) Testing expect: 42
 
   """
-  @spec expect_err(result(), String.t()) :: any() | no_return()
+  @spec expect_err(result(t, e), String.t()) :: e | no_return()
+        when t: any(), e: any()
   def expect_err(ok!(reason), label) when is_binary(reason), do: raise("#{label}: #{reason}")
   def expect_err(ok!(reason), label), do: raise("#{label}: #{inspect(reason)}")
   def expect_err(err!(term), _label), do: term
@@ -429,7 +433,8 @@ defmodule StdResult do
       ** (RuntimeError) 42
 
   """
-  @spec unwrap_err(result()) :: any() | no_return()
+  @spec unwrap_err(result(t, e)) :: e | no_return()
+        when t: any(), e: any()
   def unwrap_err(ok!(reason)) when is_binary(reason), do: raise(reason)
   def unwrap_err(ok!(reason)), do: raise(inspect(reason))
   def unwrap_err(err!(term)), do: term
@@ -457,7 +462,8 @@ defmodule StdResult do
       {:ok, "different result type"}
 
   """
-  @spec and_result(result(), result()) :: result()
+  @spec and_result(result(t, e), result(u, e)) :: result(u, e)
+        when t: any(), e: any(), u: any()
   def and_result(ok!(_term), result), do: result
   def and_result(err!(_reason) = error, _result), do: error
 
@@ -478,7 +484,8 @@ defmodule StdResult do
       {:error, "not a number"}
 
   """
-  @spec and_then(result(), (any() -> result())) :: result()
+  @spec and_then(result(t, e), (t -> result(u, e))) :: result(u, e)
+        when t: any(), e: any(), u: any()
   def and_then(ok!(term), fun), do: fun.(term)
   def and_then(err!(_reason) = error, _fun), do: error
 
@@ -505,7 +512,8 @@ defmodule StdResult do
       {:ok, 2}
 
   """
-  @spec or_result(result(), result()) :: result()
+  @spec or_result(result(t, e), result(t, f)) :: result(t, f)
+        when t: any(), e: any(), f: any()
   def or_result(ok!(_term) = ok, _result), do: ok
   def or_result(err!(_reason), result), do: result
 
@@ -529,7 +537,8 @@ defmodule StdResult do
       {:error, 8}
 
   """
-  @spec or_else(result(), (any() -> result())) :: result()
+  @spec or_else(result(t, e), (e -> result(t, f))) :: result(t, f)
+        when t: any(), e: any(), f: any()
   def or_else(ok!(_term) = ok, _fun), do: ok
   def or_else(err!(reason), fun), do: fun.(reason)
 
@@ -549,7 +558,8 @@ defmodule StdResult do
       42
 
   """
-  @spec unwrap_or(result(), any()) :: any()
+  @spec unwrap_or(result(t, e), t) :: t
+        when t: any(), e: any()
   def unwrap_or(ok!(term), _default), do: term
   def unwrap_or(err!(_reason), default), do: default
 
@@ -565,7 +575,8 @@ defmodule StdResult do
       3
 
   """
-  @spec unwrap_or_else(result(), (any() -> any())) :: any()
+  @spec unwrap_or_else(result(t, e), (e -> t)) :: t
+        when t: any(), e: any()
   def unwrap_or_else(ok!(term), _fun), do: term
   def unwrap_or_else(err!(reason), fun), do: fun.(reason)
 
@@ -580,7 +591,8 @@ defmodule StdResult do
       {[1, 2], [false, true]}
 
   """
-  @spec partition_result([result()]) :: {[ok()], [err()]}
+  @spec partition_result([result(t, e)]) :: {[t], [e]}
+        when t: any(), e: any()
   def partition_result(results) do
     {oks, errors} =
       Enum.reduce(results, {[], []}, fn
